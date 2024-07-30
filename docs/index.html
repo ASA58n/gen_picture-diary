@@ -117,8 +117,7 @@
             height: 100px;
             resize: vertical;
         }
-    </style>
-    <style>
+
         @font-face {
             font-family: 'CustomFont';
             src: url('./SNsanafonMaruJ30.ttf') format('truetype');
@@ -286,7 +285,7 @@
                     compositionCtx.drawImage(croppedCanvas, userImagePosition.x, userImagePosition.y, croppedCanvas.width * scale, croppedCanvas.height * scale);
 
                     addText();
-                    updateShareButtons();
+                    // updateShareButtons();
                 } catch (error) {
                     displayError("画像の合成に失敗しました。: " + error.message);
                 }
@@ -306,7 +305,7 @@
 
             // テキスト1
             setFont(defaultFontSize, fontFamily);
-            drawVerticalText(toFullWidth(textInput1.value), textPositions[0].x, textPositions[0].y);
+            drawVerticalText(toFullWidth(textInput1.value), textPositions[0].x, textPositions[0].y, 'single');
 
             // テキスト2
             setFont(defaultFontSize, fontFamily);
@@ -314,7 +313,7 @@
 
             // テキスト3
             setFont(defaultFontSize, fontFamily);
-            drawVerticalText(toFullWidth(textInput3.value), textPositions[2].x, textPositions[2].y);
+            drawVerticalText(toFullWidth(textInput3.value), textPositions[2].x, textPositions[2].y, 'single');
 
             // テキスト4（複数行対応）
             setFont(textInput4FontSize, fontFamily);
@@ -334,7 +333,7 @@
         }
 
         // 縦書きテキスト描画関数の例（既存の関数を修正）
-        function drawVerticalText(text, x, y) {
+        function drawVerticalText(text, x, y, type) {
             const chars = text.split('');
             let currentY = y;
 
@@ -343,9 +342,15 @@
                 const charHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
                 compositionCtx.save();
-                compositionCtx.translate(x, currentY);
+
 
                 if (char === 'ー') {
+                    if (type === 'single') {
+                        compositionCtx.translate(x + 35, currentY + 10);
+                    } else {
+                        compositionCtx.translate(x + 50, currentY + 10);
+                    }
+
                     // 文字を90度回転
                     compositionCtx.rotate(-Math.PI / 2);
 
@@ -353,6 +358,7 @@
                     compositionCtx.fillText(char, 0, 0);
                     compositionCtx.restore();
                 } else {
+                    compositionCtx.translate(x, currentY);
                     // その他の文字は通常通り90度回転して描画
 
                     // 文字を90度回転
@@ -383,7 +389,7 @@
             const charWidth = compositionCtx.measureText('あ').width;
 
             lines.forEach((line) => {
-                drawVerticalText(line, currentX, y);
+                drawVerticalText(line, currentX, y, 'multi');
                 currentX -= charWidth * lineSpacing;
             });
         }
