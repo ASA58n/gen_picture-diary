@@ -118,6 +118,12 @@
             resize: vertical;
         }
     </style>
+    <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('SNsanafonMaruJ30') format('truetype');
+        }
+    </style>
 </head>
 
 <body>
@@ -284,7 +290,10 @@
         });
 
         function addText() {
-            compositionCtx.font = '10px Arial';
+            const fontSize = '10px';
+            const fontFamily = 'CustomFont, Arial'; // フォールバックとしてArialを指定
+
+            compositionCtx.font = `${fontSize} ${fontFamily}`;
             compositionCtx.fillStyle = 'white';
             compositionCtx.strokeStyle = 'black';
             compositionCtx.lineWidth = 3;
@@ -300,19 +309,30 @@
             drawVerticalMultilineText(lines, textPositions[2].x, textPositions[2].y);
         }
 
-        function drawVerticalText(text, x, y) {
-            for (let i = 0; i < text.length; i++) {
-                compositionCtx.strokeText(text[i], x, y + i * 25);
-                compositionCtx.fillText(text[i], x, y + i * 25);
-            }
+        // フォントサイズと種類を動的に変更できるようにする関数
+        function setFont(size, family = 'CustomFont') {
+            compositionCtx.font = `${size}px ${family}, Arial`;
         }
 
+        // 縦書きテキスト描画関数の例（既存の関数を修正）
+        function drawVerticalText(text, x, y) {
+            const chars = text.split('');
+            chars.forEach((char, index) => {
+                compositionCtx.save();
+                compositionCtx.translate(x, y + index * parseInt(compositionCtx.font));
+                compositionCtx.rotate(Math.PI / 2);
+                compositionCtx.strokeText(char, 0, 0);
+                compositionCtx.fillText(char, 0, 0);
+                compositionCtx.restore();
+            });
+        }
+
+        // 縦書き複数行テキスト描画関数の例（既存の関数を修正）
         function drawVerticalMultilineText(lines, x, y) {
-            let currentX = x;
-            for (let line of lines) {
-                drawVerticalText(line, currentX, y);
-                currentX += 25; // 次の行のx座標を右にずらす
-            }
+            const lineHeight = parseInt(compositionCtx.font) * 1.5; // 行間を1.5倍に設定
+            lines.forEach((line, lineIndex) => {
+                drawVerticalText(line, x - lineIndex * lineHeight, y);
+            });
         }
 
         function updateShareButtons() {
