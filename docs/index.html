@@ -163,10 +163,11 @@
             <canvas id="compositionCanvas"></canvas>
         </div>
 
-        <div id="shareButtons">
+        <div id="shareButtons" style="display: none;">
             <a href="#" id="downloadButton" download="composed_image.png">画像をダウンロード</a>
             <a href="#" id="twitterButton" target="_blank">Twitterで共有</a>
         </div>
+        <button id="saveAndShareButton">画像を保存してTwitterで共有</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
@@ -431,7 +432,7 @@
         }
 
         // 保存&共有ボタンのイベントリスナーを設定
-        document.getElementById('twitterButton').addEventListener('click', saveAndShareImage);        // ドラッグ＆ドロップ機能（画像用）
+        document.getElementById('saveAndShareButton').addEventListener('click', saveAndShareImage);        // ドラッグ＆ドロップ機能（画像用）
 
         let isDraggingImage = false;
         let startXImage, startYImage;
