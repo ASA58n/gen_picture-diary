@@ -215,7 +215,7 @@
         let cropper = null;
         let userImagePosition = { x: 0, y: 0 };
         let textPositions = [
-            { x: 795, y: 630 },
+            { x: 780, y: 610 },
             { x: 780, y: 760 },
             { x: 800, y: 1050 },
             { x: 680, y: 630 }
@@ -312,7 +312,7 @@
 
             // テキスト1
             setFont(defaultFontSize, fontFamily);
-            drawVerticalText(toFullWidth(textInput1.value), textPositions[0].x, textPositions[0].y, 'single');
+            drawHorizontalText(toFullWidth(textInput1.value), textPositions[0].x, textPositions[0].y);
 
             // テキスト2
             setFont(defaultFontSize, fontFamily);
