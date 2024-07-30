@@ -384,60 +384,55 @@
         //     twitterButton.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
         // }
 
-        // 画像をブラウザに保存する関数
-        function saveImageToStorage() {
+        // 画像を保存してTwitterで共有する統合関数
+        function saveAndShareImage() {
+            // キャンバスから画像データを取得
             const imageData = compositionCanvas.toDataURL('image/png');
-            localStorage.setItem('savedImage', imageData);
-            console.log('画像が保存されました');
-        }
 
-        // 保存された画像をTwitterで共有する関数
-        function shareOnTwitter() {
-            const savedImage = localStorage.getItem('savedImage');
-            if (!savedImage) {
-                alert('共有する画像が見つかりません。まず画像を作成して保存してください。');
-                return;
-            }
+            // 画像データをBlobに変換
+            fetch(imageData)
+                .then(res => res.blob())
+                .then(blob => {
+                    // FileReaderを使用してBlobをData URLに変換
+                    const reader = new FileReader();
+                    reader.onloadend = function () {
+                        // Data URLをlocalStorageに保存
+                        localStorage.setItem('savedImage', reader.result);
+                        console.log('画像が保存されました');
 
-            // Blobに変換
-            const byteString = atob(savedImage.split(',')[1]);
-            const mimeString = savedImage.split(',')[0].split(':')[1].split(';')[0];
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            const blob = new Blob([ab], { type: mimeString });
+                        // Twitterの共有URLを作成
+                        const tweetText = encodeURIComponent('画像を作成しました！ #MyImageApp');
+                        const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
 
-            // Twitterの共有URLを作成
-            const tweetText = encodeURIComponent('画像を作成しました！ #MyImageApp');
-            const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+                        // 画像をBlobからFileに変換
+                        const file = new File([blob], "image.png", { type: "image/png" });
 
-            // 画像をBlobからFileに変換
-            const file = new File([blob], "image.png", { type: "image/png" });
+                        // Twitter投稿ウィンドウを開く
+                        const w = window.open(twitterIntentUrl, '_blank');
 
-            // Twitter投稿ウィンドウを開く
-            const w = window.open(twitterIntentUrl, '_blank');
-
-            // 画像をクリップボードにコピー
-            navigator.clipboard.write([
-                new ClipboardItem({
-                    [file.type]: file
+                        // 画像をクリップボードにコピー
+                        navigator.clipboard.write([
+                            new ClipboardItem({
+                                [file.type]: file
+                            })
+                        ]).then(() => {
+                            alert('画像がクリップボードにコピーされました。Twitter投稿画面で貼り付けてください。');
+                        }).catch(err => {
+                            console.error('クリップボードへのコピーに失敗しました:', err);
+                            alert('画像のコピーに失敗しました。手動で画像を添付してください。');
+                        });
+                    };
+                    reader.readAsDataURL(blob);
                 })
-            ]).then(() => {
-                alert('画像がクリップボードにコピーされました。Twitter投稿画面で貼り付けてください。');
-            }).catch(err => {
-                console.error('クリップボードへのコピーに失敗しました:', err);
-                alert('画像のコピーに失敗しました。手動で画像を添付してください。');
-            });
+                .catch(error => {
+                    console.error('エラーが発生しました:', error);
+                    alert('画像の保存と共有中にエラーが発生しました。もう一度お試しください。');
+                });
         }
 
-        // 画像保存ボタンのイベントリスナーを設定
-        document.getElementById('saveButton').addEventListener('click', saveImageToStorage);
+        // 保存&共有ボタンのイベントリスナーを設定
+        document.getElementById('twitterButton').addEventListener('click', saveAndShareImage);        // ドラッグ＆ドロップ機能（画像用）
 
-        // Twitter共有ボタンのイベントリスナーを設定
-        document.getElementById('twitterButton').addEventListener('click', shareOnTwitter);
-        // ドラッグ＆ドロップ機能（画像用）
         let isDraggingImage = false;
         let startXImage, startYImage;
 
