@@ -206,10 +206,10 @@
         let cropper = null;
         let userImagePosition = { x: 0, y: 0 };
         let textPositions = [
-            { x: 810, y: 600 },
-            { x: 810, y: 780 },
-            { x: 810, y: 1000 },
-            { x: 150, y: 150 }
+            { x: 795, y: 630 },
+            { x: 780, y: 760 },
+            { x: 800, y: 1030 },
+            { x: 680, y: 630 }
         ];
 
         function drawTemplate() {
@@ -293,51 +293,84 @@
         });
 
         function addText() {
-            const fontSize = '10px';
+            const defaultFontSize = 40;
+            const textInput4FontSize = 55;
             const fontFamily = 'CustomFont, Arial'; // フォールバックとしてArialを指定
 
-            compositionCtx.font = `${fontSize} ${fontFamily}`;
             compositionCtx.fillStyle = 'white';
             compositionCtx.strokeStyle = 'black';
             compositionCtx.lineWidth = 3;
 
             // テキスト1
-            drawVerticalText(textInput1.value, textPositions[0].x, textPositions[0].y);
+            setFont(defaultFontSize, fontFamily);
+            drawVerticalText(toFullWidth(textInput1.value), textPositions[0].x, textPositions[0].y);
 
             // テキスト2
-            drawVerticalText(textInput2.value, textPositions[1].x, textPositions[1].y);
+            setFont(defaultFontSize, fontFamily);
+            drawHorizontalText(toFullWidth(textInput2.value), textPositions[1].x, textPositions[1].y);
 
             // テキスト3
-            drawVerticalText(textInput3.value, textPositions[2].x, textPositions[2].y);
+            setFont(defaultFontSize, fontFamily);
+            drawVerticalText(toFullWidth(textInput3.value), textPositions[2].x, textPositions[2].y);
 
             // テキスト4（複数行対応）
-            const lines = textInput4.value.split('\n');
-            drawVerticalMultilineText(lines, textPositions[3].x, textPositions[3].y);
+            setFont(textInput4FontSize, fontFamily);
+            const lines = textInput4.value.split('\n').map(toFullWidth);
+            drawVerticalMultilineText(lines, textPositions[3].x, textPositions[3].y, textInput4FontSize);
         }
 
-        // フォントサイズと種類を動的に変更できるようにする関数
+        // // フォントサイズと種類を動的に変更できるようにする関数
         function setFont(size, family = 'CustomFont') {
-            compositionCtx.font = `${size}px ${family}, Arial`;
+            compositionCtx.font = `${size}px ${family}`;
+        }
+
+        function toFullWidth(str) {
+            return str.replace(/[!-~]/g, function (c) {
+                return String.fromCharCode(c.charCodeAt(0) + 0xFEE0);
+            }).replace(/ /g, '　');
         }
 
         // 縦書きテキスト描画関数の例（既存の関数を修正）
         function drawVerticalText(text, x, y) {
             const chars = text.split('');
-            chars.forEach((char, index) => {
+            let currentY = y;
+
+            chars.forEach((char) => {
+                const metrics = compositionCtx.measureText(char);
+                const charHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
                 compositionCtx.save();
-                compositionCtx.translate(x, y + index * parseInt(compositionCtx.font));
-                compositionCtx.rotate(Math.PI / 2);
+                compositionCtx.translate(x, currentY);
+
+                // 文字を90度回転
+                // compositionCtx.rotate(-Math.PI / 2);
+
                 compositionCtx.strokeText(char, 0, 0);
                 compositionCtx.fillText(char, 0, 0);
                 compositionCtx.restore();
+
+                // 次の文字の位置を計算（文字の幅を使用）
+                currentY += metrics.width;
             });
         }
 
+        function drawHorizontalText(text, x, y) {
+            compositionCtx.save();
+            compositionCtx.textBaseline = 'top';
+            compositionCtx.strokeText(text, x, y);
+            compositionCtx.fillText(text, x, y);
+            compositionCtx.restore();
+        }
+
         // 縦書き複数行テキスト描画関数の例（既存の関数を修正）
-        function drawVerticalMultilineText(lines, x, y) {
-            const lineHeight = parseInt(compositionCtx.font) * 1.5; // 行間を1.5倍に設定
-            lines.forEach((line, lineIndex) => {
-                drawVerticalText(line, x - lineIndex * lineHeight, y);
+        function drawVerticalMultilineText(lines, x, y, fontSize) {
+            const lineSpacing = 1.4;
+            let currentX = x;
+            const charWidth = compositionCtx.measureText('あ').width;
+
+            lines.forEach((line) => {
+                drawVerticalText(line, currentX, y);
+                currentX -= charWidth * lineSpacing;
             });
         }
 
