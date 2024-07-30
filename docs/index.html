@@ -165,9 +165,9 @@
 
         <div id="shareButtons" style="display: none;">
             <a href="#" id="downloadButton" download="composed_image.png">画像をダウンロード</a>
-            <a href="#" id="twitterButton" target="_blank">Twitterで共有</a>
+            <!-- <a href="#" id="twitterButton" target="_blank">Twitterで共有</a> -->
         </div>
-        <button id="saveAndShareButton">画像を保存してTwitterで共有</button>
+        <!-- <button id="saveAndShareButton">画像を保存してTwitterで共有</button> -->
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
@@ -385,54 +385,54 @@
         //     twitterButton.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
         // }
 
-        // 画像を保存してTwitterで共有する統合関数
-        function saveAndShareImage() {
-            // キャンバスから画像データを取得
-            const imageData = compositionCanvas.toDataURL('image/png');
+        // // 画像を保存してTwitterで共有する統合関数
+        // function saveAndShareImage() {
+        //     // キャンバスから画像データを取得
+        //     const imageData = compositionCanvas.toDataURL('image/png');
 
-            // 画像データをBlobに変換
-            fetch(imageData)
-                .then(res => res.blob())
-                .then(blob => {
-                    // FileReaderを使用してBlobをData URLに変換
-                    const reader = new FileReader();
-                    reader.onloadend = function () {
-                        // Data URLをlocalStorageに保存
-                        localStorage.setItem('savedImage', reader.result);
-                        console.log('画像が保存されました');
+        //     // 画像データをBlobに変換
+        //     fetch(imageData)
+        //         .then(res => res.blob())
+        //         .then(blob => {
+        //             // FileReaderを使用してBlobをData URLに変換
+        //             const reader = new FileReader();
+        //             reader.onloadend = function () {
+        //                 // Data URLをlocalStorageに保存
+        //                 localStorage.setItem('savedImage', reader.result);
+        //                 console.log('画像が保存されました');
 
-                        // Twitterの共有URLを作成
-                        const tweetText = encodeURIComponent('画像を作成しました！ #MyImageApp');
-                        const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+        //                 // Twitterの共有URLを作成
+        //                 const tweetText = encodeURIComponent('画像を作成しました！ #MyImageApp');
+        //                 const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
 
-                        // 画像をBlobからFileに変換
-                        const file = new File([blob], "image.png", { type: "image/png" });
+        //                 // 画像をBlobからFileに変換
+        //                 const file = new File([blob], "image.png", { type: "image/png" });
 
-                        // Twitter投稿ウィンドウを開く
-                        const w = window.open(twitterIntentUrl, '_blank');
+        //                 // Twitter投稿ウィンドウを開く
+        //                 const w = window.open(twitterIntentUrl, '_blank');
 
-                        // 画像をクリップボードにコピー
-                        navigator.clipboard.write([
-                            new ClipboardItem({
-                                [file.type]: file
-                            })
-                        ]).then(() => {
-                            alert('画像がクリップボードにコピーされました。Twitter投稿画面で貼り付けてください。');
-                        }).catch(err => {
-                            console.error('クリップボードへのコピーに失敗しました:', err);
-                            alert('画像のコピーに失敗しました。手動で画像を添付してください。');
-                        });
-                    };
-                    reader.readAsDataURL(blob);
-                })
-                .catch(error => {
-                    console.error('エラーが発生しました:', error);
-                    alert('画像の保存と共有中にエラーが発生しました。もう一度お試しください。');
-                });
-        }
+        //                 // 画像をクリップボードにコピー
+        //                 navigator.clipboard.write([
+        //                     new ClipboardItem({
+        //                         [file.type]: file
+        //                     })
+        //                 ]).then(() => {
+        //                     alert('画像がクリップボードにコピーされました。Twitter投稿画面で貼り付けてください。');
+        //                 }).catch(err => {
+        //                     console.error('クリップボードへのコピーに失敗しました:', err);
+        //                     alert('画像のコピーに失敗しました。手動で画像を添付してください。');
+        //                 });
+        //             };
+        //             reader.readAsDataURL(blob);
+        //         })
+        //         .catch(error => {
+        //             console.error('エラーが発生しました:', error);
+        //             alert('画像の保存と共有中にエラーが発生しました。もう一度お試しください。');
+        //         });
+        // }
 
-        // 保存&共有ボタンのイベントリスナーを設定
-        document.getElementById('saveAndShareButton').addEventListener('click', saveAndShareImage);        // ドラッグ＆ドロップ機能（画像用）
+        // // 保存&共有ボタンのイベントリスナーを設定
+        // document.getElementById('saveAndShareButton').addEventListener('click', saveAndShareImage);        // ドラッグ＆ドロップ機能（画像用）
 
         let isDraggingImage = false;
         let startXImage, startYImage;
