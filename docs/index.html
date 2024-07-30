@@ -374,15 +374,15 @@
             });
         }
 
-        function updateShareButtons() {
-            shareButtons.style.display = 'block';
+        // function updateShareButtons() {
+        //     shareButtons.style.display = 'block';
 
-            downloadButton.href = compositionCanvas.toDataURL('image/png');
+        //     downloadButton.href = compositionCanvas.toDataURL('image/png');
 
-            const tweetText = encodeURIComponent('画像テキスト合成アプリで作成しました！');
-            const tweetUrl = encodeURIComponent(window.location.href);
-            twitterButton.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
-        }
+        //     const tweetText = encodeURIComponent('画像テキスト合成アプリで作成しました！');
+        //     const tweetUrl = encodeURIComponent(window.location.href);
+        //     twitterButton.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
+        // }
 
         // 画像をブラウザに保存する関数
         function saveImageToStorage() {
