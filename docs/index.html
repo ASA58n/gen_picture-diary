@@ -168,6 +168,7 @@
             <!-- <a href="#" id="twitterButton" target="_blank">Twitterで共有</a> -->
         </div>
         <button id="saveAndShareButton">画像を保存してTwitterで共有</button>
+        <p>初回クリップボードへの保存の権限を確認されることがあるので、許可してください</p>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
@@ -402,7 +403,7 @@
                         console.log('画像が保存されました');
 
                         // Twitterの共有URLを作成
-                        const tweetText = encodeURIComponent('画像を作成しました！ #MyImageApp');
+                        const tweetText = encodeURIComponent('#ぶいちゃ夏の絵日記');
                         const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
 
                         // 画像をBlobからFileに変換
