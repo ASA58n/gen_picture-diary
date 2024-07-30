@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>画像テキスト合成アプリ</title>
+    <title>ぶいちゃ夏休みの絵日記じぇねれーたー</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -127,7 +127,7 @@
 
 <body>
     <div class="container">
-        <h1>画像テキスト合成アプリ</h1>
+        <h1>ぶいちゃ夏休みの絵日記じぇねれーたー</h1>
 
         <div id="errorMessage"></div>
 
@@ -377,8 +377,18 @@
         function drawHorizontalText(text, x, y) {
             compositionCtx.save();
             compositionCtx.textBaseline = 'top';
-            compositionCtx.strokeText(text, x, y);
-            compositionCtx.fillText(text, x, y);
+
+            const fullWidthText = toFullWidth(text);
+            let adjustedX = x;
+            if (fullWidthText.length === 1) {
+                // 1文字の場合、5px右に寄せる
+                adjustedX += 10;
+            } else if (fullWidthText.length > 2) {
+                // 2文字以上の場合、最初の2文字だけを使用
+                text = fullWidthText.slice(0, 2);
+            }
+            compositionCtx.strokeText(text, adjustedX, y);
+            compositionCtx.fillText(text, adjustedX, y);
             compositionCtx.restore();
         }
 
