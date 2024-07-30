@@ -113,7 +113,7 @@
             cursor: move;
         }
 
-        #textInput3 {
+        #textInput4 {
             height: 100px;
             resize: vertical;
         }
@@ -121,7 +121,7 @@
     <style>
         @font-face {
             font-family: 'CustomFont';
-            src: url('SNsanafonMaruJ30.ttf') format('truetype');
+            src: url('./SNsanafonMaruJ30.ttf') format('truetype');
         }
     </style>
 </head>
@@ -151,9 +151,10 @@
         </div>
 
         <div class="textInputs">
-            <input type="text" id="textInput1" placeholder="テキスト1">
-            <input type="text" id="textInput2" placeholder="テキスト2">
-            <textarea id="textInput3" placeholder="テキスト3（改行可能）"></textarea>
+            <input type="text" id="textInput1" placeholder="月">
+            <input type="text" id="textInput2" placeholder="日">
+            <input type="text" id="textInput3" placeholder="なまえ">
+            <textarea id="textInput4" placeholder="日記"></textarea>
         </div>
 
         <button id="composeButton">合成</button>
@@ -175,6 +176,7 @@
         const textInput1 = document.getElementById('textInput1');
         const textInput2 = document.getElementById('textInput2');
         const textInput3 = document.getElementById('textInput3');
+        const textInput4 = document.getElementById('textInput4');
         const composeButton = document.getElementById('composeButton');
         const shareButtons = document.getElementById('shareButtons');
         const downloadButton = document.getElementById('downloadButton');
@@ -204,8 +206,9 @@
         let cropper = null;
         let userImagePosition = { x: 0, y: 0 };
         let textPositions = [
-            { x: 50, y: 50 },
-            { x: 100, y: 100 },
+            { x: 810, y: 600 },
+            { x: 810, y: 780 },
+            { x: 810, y: 1000 },
             { x: 150, y: 150 }
         ];
 
@@ -304,9 +307,12 @@
             // テキスト2
             drawVerticalText(textInput2.value, textPositions[1].x, textPositions[1].y);
 
-            // テキスト3（複数行対応）
-            const lines = textInput3.value.split('\n');
-            drawVerticalMultilineText(lines, textPositions[2].x, textPositions[2].y);
+            // テキスト3
+            drawVerticalText(textInput3.value, textPositions[2].x, textPositions[2].y);
+
+            // テキスト4（複数行対応）
+            const lines = textInput4.value.split('\n');
+            drawVerticalMultilineText(lines, textPositions[3].x, textPositions[3].y);
         }
 
         // フォントサイズと種類を動的に変更できるようにする関数
@@ -404,7 +410,7 @@
 
         function isPointInText(x, y, index) {
             const textWidth = 20;  // 仮の幅
-            const textHeight = [textInput1, textInput2, textInput3][index].value.length * 25;  // 文字数 * 文字の高さ
+            const textHeight = [textInput1, textInput2, textInput3, textInput4][index].value.length * 25;  // 文字数 * 文字の高さ
             return (x >= textPositions[index].x && x <= textPositions[index].x + textWidth &&
                 y >= textPositions[index].y && y <= textPositions[index].y + textHeight);
         }
