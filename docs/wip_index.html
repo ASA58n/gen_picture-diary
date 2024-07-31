@@ -168,6 +168,10 @@
             </div>
         </div>
 
+        <div class="colorPicker">
+            <label for="textColor">文字色:</label>
+            <input type="color" id="textColor" value="#ffffff">
+        </div>
         <div class="textInputs">
             <input type="text" id="textInput1" placeholder="月">
             <input type="text" id="textInput2" placeholder="日">
@@ -306,6 +310,14 @@
             }
         });
 
+        const textColorPicker = document.getElementById('textColor');
+        let currentTextColor = '#ffffff';  // デフォルトの文字色
+
+        textColorPicker.addEventListener('input', (e) => {
+            currentTextColor = e.target.value;
+            redrawComposition();
+        });
+
         composeButton.addEventListener('click', () => {
             drawTemplate();
 
@@ -327,6 +339,9 @@
                     resizeSlider.value = 100;
                     resizeValue.textContent = '100%';
                     currentImageScale = imageScale;
+                    // カラーピッカーの初期値を白に設定
+                    textColorPicker.value = '#ffffff';
+                    currentTextColor = '#ffffff';
                 } catch (error) {
                     displayError("画像の合成に失敗しました。: " + error.message);
                 }
@@ -359,10 +374,10 @@
         function addText() {
             const defaultFontSize = 40;
             const textInput4FontSize = 55;
-            const fontFamily = 'CustomFont, Arial'; // フォールバックとしてArialを指定
+            const fontFamily = 'CustomFont, Arial';
 
-            compositionCtx.fillStyle = 'white';
-            compositionCtx.strokeStyle = 'black';
+            compositionCtx.fillStyle = currentTextColor;  // 文字色を設定
+            compositionCtx.strokeStyle = 'black';  // 縁取りの色（必要に応じて変更可能）
             compositionCtx.lineWidth = 3;
 
             // テキスト1
@@ -382,7 +397,6 @@
             const lines = textInput4.value.split('\n').map(toFullWidth);
             drawVerticalMultilineText(lines, textPositions[3].x, textPositions[3].y, textInput4FontSize);
         }
-
         // // フォントサイズと種類を動的に変更できるようにする関数
         function setFont(size, family = 'CustomFont') {
             compositionCtx.font = `${size}px ${family}`;
@@ -696,6 +710,7 @@
         let startXText, startYText;
 
         function redrawComposition() {
+            compositionCtx.clearRect(0, 0, compositionCanvas.width, compositionCanvas.height);
             drawTemplate();
             if (uploadedImage && cropper) {
                 const croppedCanvas = cropper.getCroppedCanvas();
