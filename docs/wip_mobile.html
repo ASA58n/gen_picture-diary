@@ -122,6 +122,10 @@
             font-family: 'CustomFont';
             src: url('./SNsanafonMaruJ30.ttf') format('truetype');
         }
+
+        #compositionCanvas {
+            touch-action: none; /* タッチスクロールを防止 */
+        }
     </style>
 </head>
 
@@ -278,11 +282,12 @@
         });
 
         //  スマホ対応 
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
+        let isDragging = false;
+        let startX, startY;
+        let imageX = 0, imageY = 0;
         const canvas = document.getElementById('compositionCanvas');
         const ctx = canvas.getContext('2d');
+        let image = new Image();
 
         // タッチイベントのリスナーを追加
         canvas.addEventListener('touchstart', handleTouchStart, false);
@@ -291,81 +296,75 @@
 
         function handleTouchStart(e) {
             e.preventDefault();
-            isDrawing = true;
-            [lastX, lastY] = getTouchPos(canvas, e);
+            isDragging = true;
+            const touch = e.touches[0];
+            startX = touch.clientX - imageX;
+            startY = touch.clientY - imageY;
         }
 
         function handleTouchMove(e) {
-            if (!isDrawing) return;
+            if (!isDragging) return;
             e.preventDefault();
-            const [x, y] = getTouchPos(canvas, e);
-            drawLine(lastX, lastY, x, y);
-            [lastX, lastY] = [x, y];
+            const touch = e.touches[0];
+            imageX = touch.clientX - startX;
+            imageY = touch.clientY - startY;
+            redrawCanvas();
         }
 
         function handleTouchEnd(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            isDrawing = false;
+            isDragging = false;
         }
 
-        function getTouchPos(canvasDom, touchEvent) {
-            const rect = canvasDom.getBoundingClientRect();
-            return [
-                touchEvent.touches[0].clientX - rect.left,
-                touchEvent.touches[0].clientY - rect.top
-            ];
-        }
-
-        function drawLine(x1, y1, x2, y2) {
-            ctx.beginPath();
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
-            ctx.closePath();
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, imageX, imageY);
         }
 
         // 画像のリサイズ処理
         function resizeImage() {
             const width = document.getElementById('width').value;
             const height = document.getElementById('height').value;
-            // リサイズのロジックをここに実装
+            canvas.width = width;
+            canvas.height = height;
+            redrawCanvas();
         }
-
+        
         // 画像の合成処理
         function composeImage() {
-            // 合成のロジックをここに実装
+            // ここで背景画像と合成するロジックを実装
+            // 例: 背景画像を描画し、その上にユーザーの画像を描画
         }
-
+        
         // クリップボードへのコピー処理
         function copyToClipboard() {
-            canvas.toBlob(function (blob) {
+            canvas.toBlob(function(blob) {
                 const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard.write([item]).then(function () {
+                navigator.clipboard.write([item]).then(function() {
                     alert("画像がクリップボードにコピーされました。");
-                }, function (err) {
+                }, function(err) {
                     console.error("クリップボードへのコピーに失敗しました", err);
                 });
             });
         }
 
         // 画像のアップロード処理
-        document.getElementById('imageUpload').addEventListener('change', function (e) {
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onload = function (event) {
-                const img = new Image();
-                img.onload = function () {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
+            reader.onload = function(event) {
+                image = new Image();
+                image.onload = function() {
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    imageX = 0;
+                    imageY = 0;
+                    redrawCanvas();
                 }
-                img.src = event.target.result;
+                image.src = event.target.result;
             }
             reader.readAsDataURL(file);
         });
+
         // ここまで
 
         composeButton.addEventListener('click', () => {
