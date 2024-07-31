@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ぶいちゃ夏休みの絵日記じぇねれーたー</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        input,
+        button,
+        textarea {
+            margin: 10px 0;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #shareButtons {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #shareButtons a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 10px 15px;
+            background-color: #1DA1F2;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        #shareButtons a:hover {
+            background-color: #1a91da;
+        }
+
+        #downloadButton {
+            background-color: #4CAF50;
+        }
+
+        #downloadButton:hover {
+            background-color: #45a049;
+        }
+
+        #editControls {
+            margin-top: 20px;
+        }
+
+        #editCanvasContainer {
+            max-width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #errorMessage {
+            color: #D32F2F;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .textInputs {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .textInputs input,
+        .textInputs textarea {
+            margin: 5px 0;
+        }
+
+        #compositionCanvas {
+            position: relative;
+            cursor: move;
+        }
+
+        #textInput4 {
+            height: 100px;
+            resize: vertical;
+        }
+
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('./SNsanafonMaruJ30.ttf') format('truetype');
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>ぶいちゃ夏休みの絵日記じぇねれーたー</h1>
+
+        <div id="errorMessage"></div>
+
+        <div>
+            <input type="file" id="imageUpload" accept="image/*">
+        </div>
+
+        <div id="editControls" style="display: none;">
+            <h3>画像編集</h3>
+            <div>
+                <label for="widthInput">幅:</label>
+                <input type="number" id="widthInput" min="1">
+                <label for="heightInput">高さ:</label>
+                <input type="number" id="heightInput" min="1">
+                <button id="resizeButton">サイズ変更</button>
+            </div>
+            <div id="editCanvasContainer">
+                <canvas id="editCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="textInputs">
+            <input type="text" id="textInput1" placeholder="月">
+            <input type="text" id="textInput2" placeholder="日">
+            <input type="text" id="textInput3" placeholder="なまえ">
+            <textarea id="textInput4" placeholder="日記"></textarea>
+        </div>
+
+        <button id="composeButton">合成</button>
+        　　　　<p>合成してから、↓の画像をドラッグして動かすとフォントが手書き風になります！</p>
+        <div id="compositionCanvasContainer">
+            <canvas id="compositionCanvas"></canvas>
+        </div>
+
+        <div id="shareButtons" style="display: none;">
+            <a href="#" id="downloadButton" download="composed_image.png">画像をダウンロード</a>
+            <!-- <a href="#" id="twitterButton" target="_blank">Twitterで共有</a> -->
+        </div>
+        <button id="saveAndShareButton">画像を保存してTwitterで共有</button>
+        <p>ボタンを押すとクリップボードへ保存されて画面切り替わるので、ツイッターの画面で貼り付けをしてください！！</p>
+        <p>※初回はクリップボードへの保存の権限を確認されることがあるので、その場合はいったんこの画面に戻って許可してください</p>
+        <!-- Twitter アカウントへのリンク -->
+        <a href="https://x.com/ASA58n_" class="twitter-link" target="_blank">
+            製作者のついったあかうんと。
+        </a>
+    </div>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const textInput1 = document.getElementById('textInput1');
+        const textInput2 = document.getElementById('textInput2');
+        const textInput3 = document.getElementById('textInput3');
+        const textInput4 = document.getElementById('textInput4');
+        const composeButton = document.getElementById('composeButton');
+        const shareButtons = document.getElementById('shareButtons');
+        const downloadButton = document.getElementById('downloadButton');
+        const twitterButton = document.getElementById('twitterButton');
+        const editControls = document.getElementById('editControls');
+        const editCanvas = document.getElementById('editCanvas');
+        const editCtx = editCanvas.getContext('2d');
+        const resizeButton = document.getElementById('resizeButton');
+        const widthInput = document.getElementById('widthInput');
+        const heightInput = document.getElementById('heightInput');
+        const errorMessage = document.getElementById('errorMessage');
+        const compositionCanvas = document.getElementById('compositionCanvas');
+        const compositionCtx = compositionCanvas.getContext('2d');
+
+        let templateImage = new Image();
+        templateImage.src = 'template.png';
+        templateImage.onload = function () {
+            compositionCanvas.width = templateImage.width;
+            compositionCanvas.height = templateImage.height;
+            drawTemplate();
+        }
+        templateImage.onerror = function () {
+            displayError("テンプレート画像の読み込みに失敗しました。");
+        }
+
+        let uploadedImage = null;
+        let cropper = null;
+        let userImagePosition = { x: 0, y: 0 };
+        let textPositions = [
+            { x: 780, y: 610 },
+            { x: 780, y: 760 },
+            { x: 800, y: 1050 },
+            { x: 680, y: 630 }
+        ];
+
+        function drawTemplate() {
+            try {
+                compositionCtx.drawImage(templateImage, 0, 0, compositionCanvas.width, compositionCanvas.height);
+            } catch (error) {
+                displayError("テンプレート画像の描画に失敗しました。: " + error.message);
+            }
+        }
+
+        function displayError(message) {
+            errorMessage.textContent = message;
+            console.error(message);
+        }
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                uploadedImage = new Image();
+                uploadedImage.onload = function () {
+                    editCanvas.width = uploadedImage.width;
+                    editCanvas.height = uploadedImage.height;
+                    editCtx.drawImage(uploadedImage, 0, 0);
+                    editControls.style.display = 'block';
+                    widthInput.value = uploadedImage.width;
+                    heightInput.value = uploadedImage.height;
+
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(editCanvas, {
+                        aspectRatio: NaN,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                    });
+                }
+                uploadedImage.onerror = function () {
+                    displayError("アップロードされた画像の読み込みに失敗しました。");
+                }
+                uploadedImage.src = event.target.result;
+            }
+            reader.onerror = function () {
+                displayError("ファイルの読み込みに失敗しました。");
+            }
+            reader.readAsDataURL(file);
+        });
+
+        resizeButton.addEventListener('click', () => {
+            const newWidth = parseInt(widthInput.value);
+            const newHeight = parseInt(heightInput.value);
+            if (newWidth > 0 && newHeight > 0) {
+                cropper.setCropBoxData({ width: newWidth, height: newHeight });
+            } else {
+                displayError("無効なサイズが指定されました。");
+            }
+        });
+
+        //  スマホ対応 
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        const canvas = document.getElementById('compositionCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // タッチイベントのリスナーを追加
+        canvas.addEventListener('touchstart', handleTouchStart, false);
+        canvas.addEventListener('touchmove', handleTouchMove, false);
+        canvas.addEventListener('touchend', handleTouchEnd, false);
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            isDrawing = true;
+            [lastX, lastY] = getTouchPos(canvas, e);
+        }
+
+        function handleTouchMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const [x, y] = getTouchPos(canvas, e);
+            drawLine(lastX, lastY, x, y);
+            [lastX, lastY] = [x, y];
+        }
+
+        function handleTouchEnd(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            isDrawing = false;
+        }
+
+        function getTouchPos(canvasDom, touchEvent) {
+            const rect = canvasDom.getBoundingClientRect();
+            return [
+                touchEvent.touches[0].clientX - rect.left,
+                touchEvent.touches[0].clientY - rect.top
+            ];
+        }
+
+        function drawLine(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        // 画像のリサイズ処理
+        function resizeImage() {
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            // リサイズのロジックをここに実装
+        }
+
+        // 画像の合成処理
+        function composeImage() {
+            // 合成のロジックをここに実装
+        }
+
+        // クリップボードへのコピー処理
+        function copyToClipboard() {
+            canvas.toBlob(function (blob) {
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item]).then(function () {
+                    alert("画像がクリップボードにコピーされました。");
+                }, function (err) {
+                    console.error("クリップボードへのコピーに失敗しました", err);
+                });
+            });
+        }
+
+        // 画像のアップロード処理
+        document.getElementById('imageUpload').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = new Image();
+                img.onload = function () {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+        // ここまで
+
+        composeButton.addEventListener('click', () => {
+            drawTemplate();
+
+            if (uploadedImage && cropper) {
+                try {
+                    const croppedCanvas = cropper.getCroppedCanvas();
+                    const scale = Math.min(compositionCanvas.width / croppedCanvas.width, compositionCanvas.height / croppedCanvas.height) * 0.8;
+                    userImagePosition = {
+                        x: (compositionCanvas.width - croppedCanvas.width * scale) / 2,
+                        y: (compositionCanvas.height - croppedCanvas.height * scale) / 10
+                    };
+                    compositionCtx.drawImage(croppedCanvas, userImagePosition.x, userImagePosition.y, croppedCanvas.width * scale, croppedCanvas.height * scale);
+
+                    addText();
+                    // updateShareButtons();
+                } catch (error) {
+                    displayError("画像の合成に失敗しました。: " + error.message);
+                }
+            } else {
+                displayError("アップロードされた画像がありません。");
+            }
+        });
+
+        function addText() {
+            const defaultFontSize = 40;
+            const textInput4FontSize = 55;
+            const fontFamily = 'CustomFont, Arial'; // フォールバックとしてArialを指定
+
+            compositionCtx.fillStyle = 'white';
+            compositionCtx.strokeStyle = 'black';
+            compositionCtx.lineWidth = 3;
+
+            // テキスト1
+            setFont(defaultFontSize, fontFamily);
+            drawHorizontalText(toFullWidth(textInput1.value), textPositions[0].x, textPositions[0].y);
+
+            // テキスト2
+            setFont(defaultFontSize, fontFamily);
+            drawHorizontalText(toFullWidth(textInput2.value), textPositions[1].x, textPositions[1].y);
+
+            // テキスト3
+            setFont(defaultFontSize, fontFamily);
+            drawVerticalText(toFullWidth(textInput3.value), textPositions[2].x, textPositions[2].y, 'single');
+
+            // テキスト4（複数行対応）
+            setFont(textInput4FontSize, fontFamily);
+            const lines = textInput4.value.split('\n').map(toFullWidth);
+            drawVerticalMultilineText(lines, textPositions[3].x, textPositions[3].y, textInput4FontSize);
+        }
+
+        // // フォントサイズと種類を動的に変更できるようにする関数
+        function setFont(size, family = 'CustomFont') {
+            compositionCtx.font = `${size}px ${family}`;
+        }
+
+        function toFullWidth(str) {
+            return str.replace(/[!-~]/g, function (c) {
+                return String.fromCharCode(c.charCodeAt(0) + 0xFEE0);
+            }).replace(/ /g, '　');
+        }
+
+        // 縦書きテキスト描画関数の例（既存の関数を修正）
+        function drawVerticalText(text, x, y, type) {
+            const chars = text.split('');
+            let currentY = y;
+
+            chars.forEach((char) => {
+                const metrics = compositionCtx.measureText(char);
+                const charHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+                compositionCtx.save();
+
+
+                if (char === 'ー' || char === '～') {
+                    if (type === 'single') {
+                        compositionCtx.translate(x + 35, currentY + 10);
+                    } else {
+                        compositionCtx.translate(x + 50, currentY + 10);
+                    }
+
+                    // 文字を90度回転
+                    compositionCtx.rotate(-Math.PI / 2);
+
+                    compositionCtx.strokeText(char, 0, 0);
+                    compositionCtx.fillText(char, 0, 0);
+                    compositionCtx.restore();
+                } else {
+                    compositionCtx.translate(x, currentY);
+                    // その他の文字は通常通り90度回転して描画
+
+                    // 文字を90度回転
+                    // compositionCtx.rotate(-Math.PI / 2);
+
+                    compositionCtx.strokeText(char, 0, 0);
+                    compositionCtx.fillText(char, 0, 0);
+                    compositionCtx.restore();
+                }
+
+                // 次の文字の位置を計算（文字の幅を使用）
+                currentY += metrics.width;
+            });
+        }
+
+        function drawHorizontalText(text, x, y) {
+            compositionCtx.save();
+            compositionCtx.textBaseline = 'top';
+
+            const fullWidthText = toFullWidth(text);
+            let adjustedX = x;
+            if (fullWidthText.length === 1) {
+                // 1文字の場合、5px右に寄せる
+                adjustedX += 10;
+            } else if (fullWidthText.length > 2) {
+                // 2文字以上の場合、最初の2文字だけを使用
+                text = fullWidthText.slice(0, 2);
+            }
+            compositionCtx.strokeText(text, adjustedX, y);
+            compositionCtx.fillText(text, adjustedX, y);
+            compositionCtx.restore();
+        }
+
+        // 縦書き複数行テキスト描画関数の例（既存の関数を修正）
+        function drawVerticalMultilineText(lines, x, y, fontSize) {
+            const lineSpacing = 1.4;
+            let currentX = x;
+            const charWidth = compositionCtx.measureText('あ').width;
+
+            lines.forEach((line) => {
+                drawVerticalText(line, currentX, y, 'multi');
+                currentX -= charWidth * lineSpacing;
+            });
+        }
+
+        // function updateShareButtons() {
+        //     shareButtons.style.display = 'block';
+
+        //     downloadButton.href = compositionCanvas.toDataURL('image/png');
+
+        //     const tweetText = encodeURIComponent('画像テキスト合成アプリで作成しました！');
+        //     const tweetUrl = encodeURIComponent(window.location.href);
+        //     twitterButton.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
+        // }
+
+        // 画像を保存してTwitterで共有する統合関数
+        function saveAndShareImage() {
+            // キャンバスから画像データを取得
+            const imageData = compositionCanvas.toDataURL('image/png');
+
+            // 画像データをBlobに変換
+            fetch(imageData)
+                .then(res => res.blob())
+                .then(blob => {
+                    // FileReaderを使用してBlobをData URLに変換
+                    const reader = new FileReader();
+                    reader.onloadend = function () {
+                        // Data URLをlocalStorageに保存
+                        localStorage.setItem('savedImage', reader.result);
+                        console.log('画像が保存されました');
+
+                        // Twitterの共有URLを作成
+                        const tweetText = encodeURIComponent('#ぶいちゃ夏の絵日記');
+                        // 共有したいURLを設定（あなたのアプリやサービスのURLに置き換えてください）
+                        const shareUrl = encodeURIComponent('https://asa58n.github.io/gen_picture-diary/');
+
+                        // Twitter Intent URLを作成
+                        const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${shareUrl}`;
+
+                        // 画像をBlobからFileに変換
+                        const file = new File([blob], "image.png", { type: "image/png" });
+
+                        // Twitter投稿ウィンドウを開く
+                        const w = window.open(twitterIntentUrl, '_blank');
+
+                        // 画像をクリップボードにコピー
+                        navigator.clipboard.write([
+                            new ClipboardItem({
+                                [file.type]: file
+                            })
+                        ]).then(() => {
+                            alert('画像がクリップボードにコピーされました。Twitter投稿画面で貼り付けてください。');
+                        }).catch(err => {
+                            console.error('クリップボードへのコピーに失敗しました:', err);
+                            alert('画像のコピーに失敗しました。手動で画像を添付してください。');
+                        });
+                    };
+                    reader.readAsDataURL(blob);
+                })
+                .catch(error => {
+                    console.error('エラーが発生しました:', error);
+                    alert('画像の保存と共有中にエラーが発生しました。もう一度お試しください。');
+                });
+        }
+
+        // 保存&共有ボタンのイベントリスナーを設定
+        document.getElementById('saveAndShareButton').addEventListener('click', saveAndShareImage);        // ドラッグ＆ドロップ機能（画像用）
+
+        let isDraggingImage = false;
+        let startXImage, startYImage;
+
+        compositionCanvas.addEventListener('mousedown', (e) => {
+            const rect = compositionCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (isPointInImage(x, y)) {
+                isDraggingImage = true;
+                startXImage = x - userImagePosition.x;
+                startYImage = y - userImagePosition.y;
+            } else {
+                for (let i = 0; i < textPositions.length; i++) {
+                    if (isPointInText(x, y, i)) {
+                        isDraggingText = true;
+                        draggedTextIndex = i;
+                        startXText = x - textPositions[i].x;
+                        startYText = y - textPositions[i].y;
+                        break;
+                    }
+                }
+            }
+        });
+
+        compositionCanvas.addEventListener('mousemove', (e) => {
+            const rect = compositionCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (isDraggingImage) {
+                userImagePosition.x = x - startXImage;
+                userImagePosition.y = y - startYImage;
+                redrawComposition();
+            } else if (isDraggingText) {
+                textPositions[draggedTextIndex].x = x - startXText;
+                textPositions[draggedTextIndex].y = y - startYText;
+                redrawComposition();
+            }
+        });
+
+        compositionCanvas.addEventListener('mouseup', () => {
+            isDraggingImage = false;
+            isDraggingText = false;
+        });
+
+        compositionCanvas.addEventListener('mouseleave', () => {
+            isDraggingImage = false;
+            isDraggingText = false;
+        });
+
+        function isPointInImage(x, y) {
+            return (x >= userImagePosition.x && x <= userImagePosition.x + uploadedImage.width &&
+                y >= userImagePosition.y && y <= userImagePosition.y + uploadedImage.height);
+        }
+
+        function isPointInText(x, y, index) {
+            const textWidth = 20;  // 仮の幅
+            const textHeight = [textInput1, textInput2, textInput3, textInput4][index].value.length * 25;  // 文字数 * 文字の高さ
+            return (x >= textPositions[index].x && x <= textPositions[index].x + textWidth &&
+                y >= textPositions[index].y && y <= textPositions[index].y + textHeight);
+        }
+
+        // ドラッグ＆ドロップ機能（テキスト用）
+        let isDraggingText = false;
+        let draggedTextIndex = -1;
+        let startXText, startYText;
+
+        function redrawComposition() {
+            drawTemplate();
+            if (uploadedImage && cropper) {
+                const croppedCanvas = cropper.getCroppedCanvas();
+                const scale = Math.min(compositionCanvas.width / croppedCanvas.width, compositionCanvas.height / croppedCanvas.height) * 0.8;
+                compositionCtx.drawImage(croppedCanvas, userImagePosition.x, userImagePosition.y, croppedCanvas.width * scale, croppedCanvas.height * scale);
+            }
+            addText();
+        }
+
+        // 初期化
+        drawTemplate();
+    </script>
+</body>
+
+</html>
