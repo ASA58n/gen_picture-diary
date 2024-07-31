@@ -162,7 +162,7 @@
             <canvas id="compositionCanvas"></canvas>
         </div>
 
-        <div id="shareButtons">
+        <div id="shareButtons" style="display: none;">
             <a href="#" id="downloadButton" download="composed_image.png">画像をダウンロード</a>
         </div>
         <button id="saveAndShareButton">画像を保存してTwitterで共有</button>
@@ -276,137 +276,6 @@
             }
         });
 
-        //  スマホ対応 
-        let isDragging = false;
-        let startX, startY;
-        let imageX = 0, imageY = 0;
-        const canvas = document.getElementById('compositionCanvas');
-        const ctx = canvas.getContext('2d');
-        let userImage = new Image();
-        let templateImage = new Image();
-        let isComposed = false;
-
-        // テンプレート画像の読み込み
-        templateImage.onload = function () {
-            canvas.width = templateImage.width;
-            canvas.height = templateImage.height;
-            redrawCanvas();
-        };
-
-        // タッチイベントのリスナーを追加
-        canvas.addEventListener('touchstart', handleTouchStart, false);
-        canvas.addEventListener('touchmove', handleTouchMove, false);
-        canvas.addEventListener('touchend', handleTouchEnd, false);
-
-        function handleTouchStart(e) {
-            e.preventDefault();
-            if (!isComposed) return;
-            isDragging = true;
-            const touch = e.touches[0];
-            startX = touch.clientX - imageX;
-            startY = touch.clientY - imageY;
-        }
-
-        function handleTouchMove(e) {
-            if (!isDragging || !isComposed) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            imageX = touch.clientX - startX;
-            imageY = touch.clientY - startY;
-            redrawCanvas();
-        }
-
-        function handleTouchEnd(e) {
-            isDragging = false;
-        }
-
-        function redrawCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(templateImage, 0, 0, canvas.width, canvas.height);
-            if (isComposed && userImage.src) {
-                ctx.drawImage(userImage, imageX, imageY, userImage.width, userImage.height);
-            }
-        }
-
-        // ユーザー画像のリサイズ処理
-        function resizeUserImage() {
-            if (!userImage.src) {
-                alert('画像をアップロードしてください。');
-                return;
-            }
-            const maxWidth = canvas.width * 0.8;
-            const maxHeight = canvas.height * 0.8;
-            let newWidth = userImage.width;
-            let newHeight = userImage.height;
-
-            if (newWidth > maxWidth) {
-                newHeight *= maxWidth / newWidth;
-                newWidth = maxWidth;
-            }
-            if (newHeight > maxHeight) {
-                newWidth *= maxHeight / newHeight;
-                newHeight = maxHeight;
-            }
-
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = newWidth;
-            tempCanvas.height = newHeight;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(userImage, 0, 0, newWidth, newHeight);
-
-            userImage.src = tempCanvas.toDataURL('image/png');
-            userImage.onload = function () {
-                imageX = (canvas.width - newWidth) / 2;
-                imageY = (canvas.height - newHeight) / 2;
-                isComposed = true;
-                redrawCanvas();
-            };
-        }
-
-        // 画像の合成処理
-        function composeImage() {
-            if (!userImage.src) {
-                alert('画像をアップロードしてください。');
-                return;
-            }
-            isComposed = true;
-            imageX = (canvas.width - userImage.width) / 2;
-            imageY = (canvas.height - userImage.height) / 2;
-            redrawCanvas();
-        }
-
-        // クリップボードへのコピー処理
-        function copyToClipboard() {
-            canvas.toBlob(function (blob) {
-                const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard.write([item]).then(function () {
-                    alert("画像がクリップボードにコピーされました。");
-                }, function (err) {
-                    console.error("クリップボードへのコピーに失敗しました", err);
-                });
-            });
-        }
-
-        // 画像のアップロード処理
-        document.getElementById('imageUpload').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                userImage = new Image();
-                userImage.onload = function () {
-                    isComposed = false;
-                    redrawCanvas();
-                }
-                userImage.src = event.target.result;
-            }
-            reader.readAsDataURL(file);
-        });
-
-        // ダウンロードボタンの処理
-        document.getElementById('downloadButton').addEventListener('click', function (e) {
-            this.href = canvas.toDataURL('image/png');
-        });        // ここまで
-
         composeButton.addEventListener('click', () => {
             drawTemplate();
 
@@ -421,7 +290,7 @@
                     compositionCtx.drawImage(croppedCanvas, userImagePosition.x, userImagePosition.y, croppedCanvas.width * scale, croppedCanvas.height * scale);
 
                     addText();
-                    // updateShareButtons();
+                    updateShareButtons();
                 } catch (error) {
                     displayError("画像の合成に失敗しました。: " + error.message);
                 }
@@ -540,15 +409,12 @@
             });
         }
 
-        // function updateShareButtons() {
-        //     shareButtons.style.display = 'block';
+        function updateShareButtons() {
+            shareButtons.style.display = 'block';
 
-        //     downloadButton.href = compositionCanvas.toDataURL('image/png');
+            downloadButton.href = compositionCanvas.toDataURL('image/png');
 
-        //     const tweetText = encodeURIComponent('画像テキスト合成アプリで作成しました！');
-        //     const tweetUrl = encodeURIComponent(window.location.href);
-        //     twitterButton.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
-        // }
+        }
 
         // 画像を保存してTwitterで共有する統合関数
         function saveAndShareImage() {
