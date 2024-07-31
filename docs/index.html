@@ -164,7 +164,6 @@
 
         <div id="shareButtons" style="display: none;">
             <a href="#" id="downloadButton" download="composed_image.png">画像をダウンロード</a>
-            <!-- <a href="#" id="twitterButton" target="_blank">Twitterで共有</a> -->
         </div>
         <button id="saveAndShareButton">画像を保存してTwitterで共有</button>
         <p>ボタンを押すとクリップボードへ保存されて画面切り替わるので、ツイッターの画面で貼り付けをしてください！！</p>
@@ -292,7 +291,7 @@
                     compositionCtx.drawImage(croppedCanvas, userImagePosition.x, userImagePosition.y, croppedCanvas.width * scale, croppedCanvas.height * scale);
 
                     addText();
-                    // updateShareButtons();
+                    updateShareButtons();
                 } catch (error) {
                     displayError("画像の合成に失敗しました。: " + error.message);
                 }
@@ -411,15 +410,10 @@
             });
         }
 
-        // function updateShareButtons() {
-        //     shareButtons.style.display = 'block';
-
-        //     downloadButton.href = compositionCanvas.toDataURL('image/png');
-
-        //     const tweetText = encodeURIComponent('画像テキスト合成アプリで作成しました！');
-        //     const tweetUrl = encodeURIComponent(window.location.href);
-        //     twitterButton.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
-        // }
+        function updateShareButtons() {
+            shareButtons.style.display = 'block';
+            downloadButton.href = compositionCanvas.toDataURL('image/png');
+        }
 
         // 画像を保存してTwitterで共有する統合関数
         function saveAndShareImage() {
