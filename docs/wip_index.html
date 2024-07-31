@@ -433,7 +433,7 @@
 
         function updateShareButtons() {
             shareButtons.style.display = 'block';
-            downloadButton.href = compositionCanvas.toDataURL('image/png');
+            // downloadButton.href = compositionCanvas.toDataURL('image/png');
         }
 
         // 画像を保存してTwitterで共有する統合関数
@@ -488,6 +488,24 @@
 
         // 保存&共有ボタンのイベントリスナーを設定
         document.getElementById('saveAndShareButton').addEventListener('click', saveAndShareImage);        // ドラッグ＆ドロップ機能（画像用）
+
+        // downloadButtonのイベントリスナーを変更
+        downloadButton.addEventListener('click', function (e) {
+            e.preventDefault();  // デフォルトの挙動を防止
+
+            // 最新のcanvas内容を取得
+            const imageData = compositionCanvas.toDataURL('image/png');
+
+            // ダウンロード用の一時的なリンクを作成
+            const tempLink = document.createElement('a');
+            tempLink.download = 'composed_image.png';  // ダウンロードされるファイル名
+            tempLink.href = imageData;
+
+            // リンクをクリックしてダウンロードを開始
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+        });
 
         let isDraggingImage = false;
         let startXImage, startYImage;
