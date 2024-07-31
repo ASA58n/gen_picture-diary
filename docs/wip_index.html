@@ -176,13 +176,14 @@
         </div>
 
         <button id="composeButton">合成</button>
-        <p>合成してから、↓の画像をドラッグして動かすとフォントが手書き風になります！</p>
+        <!-- 　　　　<p>合成してから、↓の画像をドラッグして動かすとフォントが手書き風になります！</p> -->
         <div id="compositionCanvasContainer">
             <canvas id="compositionCanvas"></canvas>
         </div>
 
         <div id="shareButtons" style="display: none;">
             <a href="#" id="downloadButton" download="composed_image.png">画像をダウンロード</a>
+            <p> #ぶいちゃ夏の絵日記 つぶやくときにハッシュタグ入れてくれると見に行けるので喜びます(｀・ω・´)ﾌﾝｽ!</p>
         </div>
         <button id="saveAndShareButton">画像を保存してTwitterで共有</button>
         <p>ボタンを押すとクリップボードへ保存されて画面切り替わるので、ツイッターの画面で貼り付けをしてください！！</p>
@@ -191,6 +192,7 @@
         <a href="https://x.com/ASA58n_" class="twitter-link" target="_blank">
             製作者のついったあかうんと。
         </a>
+        <p>何か要望とかあったら連絡ください。使用は自己責任です。</p>
     </div>
 
 
@@ -227,7 +229,7 @@
         templateImage.onerror = function () {
             displayError("テンプレート画像の読み込みに失敗しました。");
         }
-
+        let isDragging = false;
         let uploadedImage = null;
         let cropper = null;
         let userImagePosition = { x: 0, y: 0 };
@@ -430,9 +432,7 @@
 
         function updateShareButtons() {
             shareButtons.style.display = 'block';
-
             downloadButton.href = compositionCanvas.toDataURL('image/png');
-
         }
 
         // 画像を保存してTwitterで共有する統合関数
@@ -490,54 +490,139 @@
 
         let isDraggingImage = false;
         let startXImage, startYImage;
+        let movedImagePosition = { x: 0, y: 0 };
 
-        compositionCanvas.addEventListener('mousedown', (e) => {
-            const rect = compositionCanvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+        // const compositionCanvas = document.getElementById('compositionCanvas');
+        const ctx = compositionCanvas.getContext('2d');
 
-            if (isPointInImage(x, y)) {
-                isDraggingImage = true;
-                startXImage = x - userImagePosition.x;
-                startYImage = y - userImagePosition.y;
-            } else {
-                for (let i = 0; i < textPositions.length; i++) {
-                    if (isPointInText(x, y, i)) {
-                        isDraggingText = true;
-                        draggedTextIndex = i;
-                        startXText = x - textPositions[i].x;
-                        startYText = y - textPositions[i].y;
-                        break;
-                    }
-                }
+        // マウスダウン/タッチスタートイベントリスナー
+        compositionCanvas.addEventListener('mousedown', startDragging);
+        compositionCanvas.addEventListener('touchstart', startDragging);
+
+        // マウスムーブ/タッチムーブイベントリスナー
+        compositionCanvas.addEventListener('mousemove', drag);
+        compositionCanvas.addEventListener('touchmove', drag);
+
+        // マウスアップ/タッチエンドイベントリスナー
+        compositionCanvas.addEventListener('mouseup', stopDragging);
+        compositionCanvas.addEventListener('touchend', stopDragging);
+
+        function startDragging(e) {
+            isDragging = true;
+            if (e.type === 'mousedown') {
+                startX = e.clientX - compositionCanvas.offsetLeft;
+                startY = e.clientY - compositionCanvas.offsetTop;
+            } else if (e.type === 'touchstart') {
+                startX = e.touches[0].clientX - compositionCanvas.offsetLeft;
+                startY = e.touches[0].clientY - compositionCanvas.offsetTop;
             }
-        });
+        }
 
-        compositionCanvas.addEventListener('mousemove', (e) => {
-            const rect = compositionCanvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+        function drag(e) {
+            if (!isDragging) return;
 
-            if (isDraggingImage) {
-                userImagePosition.x = x - startXImage;
-                userImagePosition.y = y - startYImage;
-                redrawComposition();
-            } else if (isDraggingText) {
-                textPositions[draggedTextIndex].x = x - startXText;
-                textPositions[draggedTextIndex].y = y - startYText;
-                redrawComposition();
+            e.preventDefault();
+
+            let currentX, currentY;
+            if (e.type === 'mousemove') {
+                currentX = e.clientX - compositionCanvas.offsetLeft;
+                currentY = e.clientY - compositionCanvas.offsetTop;
+            } else if (e.type === 'touchmove') {
+                currentX = e.touches[0].clientX - compositionCanvas.offsetLeft;
+                currentY = e.touches[0].clientY - compositionCanvas.offsetTop;
             }
-        });
 
-        compositionCanvas.addEventListener('mouseup', () => {
-            isDraggingImage = false;
-            isDraggingText = false;
-        });
+            const dx = currentX - startX;
+            const dy = currentY - startY;
 
-        compositionCanvas.addEventListener('mouseleave', () => {
-            isDraggingImage = false;
-            isDraggingText = false;
-        });
+            movedImagePosition.x += dx;
+            movedImagePosition.y += dy;
+
+            // キャンバスをクリアして再描画
+            ctx.clearRect(0, 0, compositionCanvas.width, compositionCanvas.height);
+            drawTemplate(); // 背景画像を描画する関数（既存のコード）
+            drawUserImage(); // ユーザー画像を描画する関数（新しい位置で）
+            addText(); // テキストを描画する関数（既存のコード）
+
+            startX = currentX;
+            startY = currentY;
+        }
+        function stopDragging() {
+            isDragging = false;
+            // ここで saveImage 関数を呼び出して、移動後の状態を保存
+            saveImage();
+        }
+
+        function drawUserImage() {
+            // ユーザーの画像を新しい位置に描画
+            ctx.drawImage(uploadedImage, movedImagePosition.x, movedImagePosition.y);
+        }
+
+        function saveImage() {
+            const canvas = document.getElementById('compositionCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // 既存の描画内容をクリア
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 背景画像を描画（既存のコード）
+            drawTemplate();
+            // ユーザーの画像を新しい位置に描画
+            ctx.drawImage(uploadedImage, movedImagePosition.x, movedImagePosition.y);
+
+            // テキストを描画（既存のコード）
+            addText()
+        }
+
+        compositionCanvas.addEventListener('mouseup', saveImage);
+        compositionCanvas.addEventListener('touchend', saveImage);
+        // compositionCanvas.addEventListener('mousedown', (e) => {
+        //     const rect = compositionCanvas.getBoundingClientRect();
+        //     const x = e.clientX - rect.left;
+        //     const y = e.clientY - rect.top;
+
+        //     if (isPointInImage(x, y)) {
+        //         isDraggingImage = true;
+        //         startXImage = x - userImagePosition.x;
+        //         startYImage = y - userImagePosition.y;
+        //     } else {
+        //         for (let i = 0; i < textPositions.length; i++) {
+        //             if (isPointInText(x, y, i)) {
+        //                 isDraggingText = true;
+        //                 draggedTextIndex = i;
+        //                 startXText = x - textPositions[i].x;
+        //                 startYText = y - textPositions[i].y;
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // });
+
+        // compositionCanvas.addEventListener('mousemove', (e) => {
+        //     const rect = compositionCanvas.getBoundingClientRect();
+        //     const x = e.clientX - rect.left;
+        //     const y = e.clientY - rect.top;
+
+        //     if (isDraggingImage) {
+        //         userImagePosition.x = x - startXImage;
+        //         userImagePosition.y = y - startYImage;
+        //         redrawComposition();
+        //     } else if (isDraggingText) {
+        //         textPositions[draggedTextIndex].x = x - startXText;
+        //         textPositions[draggedTextIndex].y = y - startYText;
+        //         redrawComposition();
+        //     }
+        // });
+
+        // compositionCanvas.addEventListener('mouseup', () => {
+        //     isDraggingImage = false;
+        //     isDraggingText = false;
+        // });
+
+        // compositionCanvas.addEventListener('mouseleave', () => {
+        //     isDraggingImage = false;
+        //     isDraggingText = false;
+        // });
 
         function isPointInImage(x, y) {
             return (x >= userImagePosition.x && x <= userImagePosition.x + uploadedImage.width &&
