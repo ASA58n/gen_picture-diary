@@ -168,20 +168,20 @@
             </div>
         </div>
 
-        <div class="colorPicker">
-            <label for="textColor">文字色:</label>
-            <input type="color" id="textColor" value="#ffffff">
-            <label for="strokeColor">縁取り色:</label>
-            <input type="color" id="strokeColor" value="#000000">
-        </div>
         <div class="textInputs">
             <input type="text" id="textInput1" placeholder="月">
             <input type="text" id="textInput2" placeholder="日">
             <input type="text" id="textInput3" placeholder="なまえ">
             <textarea id="textInput4" placeholder="日記"></textarea>
         </div>
-
+        <p>合成ボタンを押すと色の設定とか戻っちゃうから最初に１回だけ！</p>
         <button id="composeButton">合成</button>
+        <div class="colorPicker">
+            <label for="textColor">文字色:</label>
+            <input type="color" id="textColor" value="#ffffff">
+            <label for="strokeColor">縁取り色:</label>
+            <input type="color" id="strokeColor" value="#000000">
+        </div>
         <div id="resizeControls" style="display: none;">
             <label for="resizeSlider">画像サイズ調整:</label>
             <input type="range" id="resizeSlider" min="10" max="200" value="100">
