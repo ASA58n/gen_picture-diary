@@ -176,7 +176,11 @@
         </div>
 
         <button id="composeButton">合成</button>
-        <!-- 　　　　<p>合成してから、↓の画像をドラッグして動かすとフォントが手書き風になります！</p> -->
+        <div id="resizeControls" style="display: none;">
+            <label for="resizeSlider">画像サイズ調整:</label>
+            <input type="range" id="resizeSlider" min="10" max="200" value="100">
+            <span id="resizeValue">100%</span>
+        </div>
         <div id="compositionCanvasContainer">
             <canvas id="compositionCanvas"></canvas>
         </div>
@@ -218,6 +222,9 @@
         const errorMessage = document.getElementById('errorMessage');
         const compositionCanvas = document.getElementById('compositionCanvas');
         const compositionCtx = compositionCanvas.getContext('2d');
+        const resizeControls = document.getElementById('resizeControls');
+        const resizeSlider = document.getElementById('resizeSlider');
+        const resizeValue = document.getElementById('resizeValue');
 
         let templateImage = new Image();
         templateImage.src = 'template.png';
@@ -229,6 +236,7 @@
         templateImage.onerror = function () {
             displayError("テンプレート画像の読み込みに失敗しました。");
         }
+        let currentImageScale = 1;
         let imageScale = 1;
         let isDragging = false;
         let uploadedImage = null;
@@ -313,12 +321,39 @@
 
                     addText();
                     updateShareButtons();
+                    // 合成後にリサイズコントロールを表示
+                    resizeControls.style.display = 'block';
+                    // 現在のスケールを100%として設定
+                    resizeSlider.value = 100;
+                    resizeValue.textContent = '100%';
+                    currentImageScale = imageScale;
                 } catch (error) {
                     displayError("画像の合成に失敗しました。: " + error.message);
                 }
             } else {
                 displayError("アップロードされた画像がありません。");
             }
+        });
+
+        resizeSlider.addEventListener('input', () => {
+            const scalePercent = parseInt(resizeSlider.value);
+            resizeValue.textContent = scalePercent + '%';
+
+            const newScale = (scalePercent / 100) * currentImageScale;
+
+            // 画像の新しいサイズを計算
+            const newWidth = uploadedImage.width * newScale;
+            const newHeight = uploadedImage.height * newScale;
+
+            // キャンバスをクリアして再描画
+            compositionCtx.clearRect(0, 0, compositionCanvas.width, compositionCanvas.height);
+            drawTemplate();
+
+            // 新しいサイズで画像を描画
+            const croppedCanvas = cropper.getCroppedCanvas();
+            compositionCtx.drawImage(croppedCanvas, userImagePosition.x, userImagePosition.y, newWidth, newHeight);
+
+            addText();
         });
 
         function addText() {
@@ -575,7 +610,11 @@
         function drawUserImage() {
             if (uploadedImage && cropper) {
                 const croppedCanvas = cropper.getCroppedCanvas();
-                ctx.drawImage(croppedCanvas, movedImagePosition.x, movedImagePosition.y, croppedCanvas.width * imageScale, croppedCanvas.height * imageScale);
+                const scalePercent = parseInt(resizeSlider.value);
+                const newScale = (scalePercent / 100) * currentImageScale;
+                const newWidth = croppedCanvas.width * newScale;
+                const newHeight = croppedCanvas.height * newScale;
+                ctx.drawImage(croppedCanvas, movedImagePosition.x, movedImagePosition.y, newWidth, newHeight);
             }
         }
 
@@ -583,19 +622,9 @@
             const canvas = document.getElementById('compositionCanvas');
             const ctx = canvas.getContext('2d');
 
-            // 既存の描画内容をクリア
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 背景画像を描画（既存のコード）
             drawTemplate();
-
-            // ユーザーの画像を新しい位置に描画（修正）
-            if (uploadedImage && cropper) {
-                const croppedCanvas = cropper.getCroppedCanvas();
-                ctx.drawImage(croppedCanvas, movedImagePosition.x, movedImagePosition.y, croppedCanvas.width * imageScale, croppedCanvas.height * imageScale);
-            }
-
-            // テキストを描画（既存のコード）
+            drawUserImage();
             addText();
         }
 
