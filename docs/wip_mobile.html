@@ -122,16 +122,12 @@
             font-family: 'CustomFont';
             src: url('./SNsanafonMaruJ30.ttf') format('truetype');
         }
-
-        #compositionCanvas {
-            touch-action: none; /* タッチスクロールを防止 */
-        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>ぶいちゃ夏休みの絵日記じぇねれーたー スマホ想定</h1>
+        <h1>ぶいちゃ夏休みの絵日記じぇねれーたー</h1>
 
         <div id="errorMessage"></div>
 
@@ -161,12 +157,14 @@
         </div>
 
         <button id="composeButton">合成</button>
-        　　　　<p>合成してから、↓の画像をドラッグして動かすとフォントが手書き風になります！</p>
+        <p>合成してから、↓の画像をドラッグして動かすとフォントが手書き風になります！</p>
         <div id="compositionCanvasContainer">
             <canvas id="compositionCanvas"></canvas>
         </div>
 
-        <a href="#" id="downloadButton" download="composed_image.png">画像をダウンロード</a>
+        <div id="shareButtons">
+            <a href="#" id="downloadButton" download="composed_image.png">画像をダウンロード</a>
+        </div>
         <button id="saveAndShareButton">画像を保存してTwitterで共有</button>
         <p>ボタンを押すとクリップボードへ保存されて画面切り替わるので、ツイッターの画面で貼り付けをしてください！！</p>
         <p>※初回はクリップボードへの保存の権限を確認されることがあるので、その場合はいったんこの画面に戻って許可してください</p>
@@ -284,7 +282,16 @@
         let imageX = 0, imageY = 0;
         const canvas = document.getElementById('compositionCanvas');
         const ctx = canvas.getContext('2d');
-        let image = new Image();
+        let userImage = new Image();
+        let templateImage = new Image();
+        let isComposed = false;
+
+        // テンプレート画像の読み込み
+        templateImage.onload = function () {
+            canvas.width = templateImage.width;
+            canvas.height = templateImage.height;
+            redrawCanvas();
+        };
 
         // タッチイベントのリスナーを追加
         canvas.addEventListener('touchstart', handleTouchStart, false);
@@ -293,6 +300,7 @@
 
         function handleTouchStart(e) {
             e.preventDefault();
+            if (!isComposed) return;
             isDragging = true;
             const touch = e.touches[0];
             startX = touch.clientX - imageX;
@@ -300,7 +308,7 @@
         }
 
         function handleTouchMove(e) {
-            if (!isDragging) return;
+            if (!isDragging || !isComposed) return;
             e.preventDefault();
             const touch = e.touches[0];
             imageX = touch.clientX - startX;
@@ -314,55 +322,90 @@
 
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(image, imageX, imageY);
+            ctx.drawImage(templateImage, 0, 0, canvas.width, canvas.height);
+            if (isComposed && userImage.src) {
+                ctx.drawImage(userImage, imageX, imageY, userImage.width, userImage.height);
+            }
         }
 
-        // 画像のリサイズ処理
-        function resizeImage() {
-            const width = document.getElementById('width').value;
-            const height = document.getElementById('height').value;
-            canvas.width = width;
-            canvas.height = height;
-            redrawCanvas();
+        // ユーザー画像のリサイズ処理
+        function resizeUserImage() {
+            if (!userImage.src) {
+                alert('画像をアップロードしてください。');
+                return;
+            }
+            const maxWidth = canvas.width * 0.8;
+            const maxHeight = canvas.height * 0.8;
+            let newWidth = userImage.width;
+            let newHeight = userImage.height;
+
+            if (newWidth > maxWidth) {
+                newHeight *= maxWidth / newWidth;
+                newWidth = maxWidth;
+            }
+            if (newHeight > maxHeight) {
+                newWidth *= maxHeight / newHeight;
+                newHeight = maxHeight;
+            }
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = newWidth;
+            tempCanvas.height = newHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(userImage, 0, 0, newWidth, newHeight);
+
+            userImage.src = tempCanvas.toDataURL('image/png');
+            userImage.onload = function () {
+                imageX = (canvas.width - newWidth) / 2;
+                imageY = (canvas.height - newHeight) / 2;
+                isComposed = true;
+                redrawCanvas();
+            };
         }
-        
+
         // 画像の合成処理
         function composeImage() {
-            // ここで背景画像と合成するロジックを実装
-            // 例: 背景画像を描画し、その上にユーザーの画像を描画
+            if (!userImage.src) {
+                alert('画像をアップロードしてください。');
+                return;
+            }
+            isComposed = true;
+            imageX = (canvas.width - userImage.width) / 2;
+            imageY = (canvas.height - userImage.height) / 2;
+            redrawCanvas();
         }
-        
+
         // クリップボードへのコピー処理
         function copyToClipboard() {
-            canvas.toBlob(function(blob) {
+            canvas.toBlob(function (blob) {
                 const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard.write([item]).then(function() {
+                navigator.clipboard.write([item]).then(function () {
                     alert("画像がクリップボードにコピーされました。");
-                }, function(err) {
+                }, function (err) {
                     console.error("クリップボードへのコピーに失敗しました", err);
                 });
             });
         }
 
         // 画像のアップロード処理
-        document.getElementById('imageUpload').addEventListener('change', function(e) {
+        document.getElementById('imageUpload').addEventListener('change', function (e) {
             const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onload = function(event) {
-                image = new Image();
-                image.onload = function() {
-                    canvas.width = image.width;
-                    canvas.height = image.height;
-                    imageX = 0;
-                    imageY = 0;
+            reader.onload = function (event) {
+                userImage = new Image();
+                userImage.onload = function () {
+                    isComposed = false;
                     redrawCanvas();
                 }
-                image.src = event.target.result;
+                userImage.src = event.target.result;
             }
             reader.readAsDataURL(file);
         });
 
-        // ここまで
+        // ダウンロードボタンの処理
+        document.getElementById('downloadButton').addEventListener('click', function (e) {
+            this.href = canvas.toDataURL('image/png');
+        });        // ここまで
 
         composeButton.addEventListener('click', () => {
             drawTemplate();
