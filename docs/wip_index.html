@@ -229,6 +229,7 @@
         templateImage.onerror = function () {
             displayError("テンプレート画像の読み込みに失敗しました。");
         }
+        let imageScale = 1;
         let isDragging = false;
         let uploadedImage = null;
         let cropper = null;
@@ -303,12 +304,12 @@
             if (uploadedImage && cropper) {
                 try {
                     const croppedCanvas = cropper.getCroppedCanvas();
-                    const scale = Math.min(compositionCanvas.width / croppedCanvas.width, compositionCanvas.height / croppedCanvas.height) * 0.8;
+                    imageScale = Math.min(compositionCanvas.width / croppedCanvas.width, compositionCanvas.height / croppedCanvas.height) * 0.8;
                     userImagePosition = {
-                        x: (compositionCanvas.width - croppedCanvas.width * scale) / 2,
-                        y: (compositionCanvas.height - croppedCanvas.height * scale) / 10
+                        x: (compositionCanvas.width - croppedCanvas.width * imageScale) / 2,
+                        y: (compositionCanvas.height - croppedCanvas.height * imageScale) / 10
                     };
-                    compositionCtx.drawImage(croppedCanvas, userImagePosition.x, userImagePosition.y, croppedCanvas.width * scale, croppedCanvas.height * scale);
+                    compositionCtx.drawImage(croppedCanvas, userImagePosition.x, userImagePosition.y, croppedCanvas.width * imageScale, croppedCanvas.height * imageScale);
 
                     addText();
                     updateShareButtons();
@@ -554,8 +555,10 @@
         }
 
         function drawUserImage() {
-            // ユーザーの画像を新しい位置に描画
-            ctx.drawImage(uploadedImage, movedImagePosition.x, movedImagePosition.y);
+            if (uploadedImage && cropper) {
+                const croppedCanvas = cropper.getCroppedCanvas();
+                ctx.drawImage(croppedCanvas, movedImagePosition.x, movedImagePosition.y, croppedCanvas.width * imageScale, croppedCanvas.height * imageScale);
+            }
         }
 
         function saveImage() {
@@ -567,11 +570,15 @@
 
             // 背景画像を描画（既存のコード）
             drawTemplate();
-            // ユーザーの画像を新しい位置に描画
-            ctx.drawImage(uploadedImage, movedImagePosition.x, movedImagePosition.y);
+
+            // ユーザーの画像を新しい位置に描画（修正）
+            if (uploadedImage && cropper) {
+                const croppedCanvas = cropper.getCroppedCanvas();
+                ctx.drawImage(croppedCanvas, movedImagePosition.x, movedImagePosition.y, croppedCanvas.width * imageScale, croppedCanvas.height * imageScale);
+            }
 
             // テキストを描画（既存のコード）
-            addText()
+            addText();
         }
 
         compositionCanvas.addEventListener('mouseup', saveImage);
