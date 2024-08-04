@@ -510,7 +510,7 @@
                         const shareUrl = encodeURIComponent('https://asa58n.github.io/gen_picture-diary/');
 
                         // Twitter Intent URLを作成
-                        const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${shareUrl}`;
+                        const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}\n&url=${shareUrl}`;
 
                         // 画像をBlobからFileに変換
                         const file = new File([blob], "image.png", { type: "image/png" });
