@@ -505,12 +505,12 @@
                         console.log('画像が保存されました');
 
                         // Twitterの共有URLを作成
-                        const tweetText = encodeURIComponent('ぶいちゃ夏の絵日記, VRchat');
+                        const tweetText = encodeURIComponent('ぶいちゃ夏の絵日記,VRchat');
                         // 共有したいURLを設定（あなたのアプリやサービスのURLに置き換えてください）
-                        const shareUrl = encodeURIComponent('https://asa58n.github.io/gen_picture-diary/%0A');
+                        const shareUrl = encodeURIComponent('https://asa58n.github.io/gen_picture-diary/');
 
                         // Twitter Intent URLを作成
-                        const twitterIntentUrl = `https://twitter.com/intent/tweet?hashtags=${tweetText}&url=${shareUrl}`;
+                        const twitterIntentUrl = `https://twitter.com/intent/tweet?hashtags=${tweetText}&url=${shareUrl}%0A`;
 
                         // 画像をBlobからFileに変換
                         const file = new File([blob], "image.png", { type: "image/png" });
