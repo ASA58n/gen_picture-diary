@@ -2,9 +2,18 @@
 <html lang="ja">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NFNW3W5P5L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-NFNW3W5P5L');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ぶいちゃ夏休みの絵日記じぇねれーたー</title>
+    <title>ぶいちゃ絵日記じぇねれーたー</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -146,7 +155,7 @@
 
 <body>
     <div class="container">
-        <h1>ぶいちゃ夏休みの絵日記じぇねれーたーnew</h1>
+        <h1>ぶいちゃ絵日記じぇねれーたー</h1>
 
         <div id="errorMessage"></div>
 
@@ -168,20 +177,20 @@
             </div>
         </div>
 
-        <div class="colorPicker">
-            <label for="textColor">文字色:</label>
-            <input type="color" id="textColor" value="#ffffff">
-            <label for="strokeColor">縁取り色:</label>
-            <input type="color" id="strokeColor" value="#000000">
-        </div>
         <div class="textInputs">
             <input type="text" id="textInput1" placeholder="月">
             <input type="text" id="textInput2" placeholder="日">
             <input type="text" id="textInput3" placeholder="なまえ">
             <textarea id="textInput4" placeholder="日記"></textarea>
         </div>
-
+        <p>合成ボタンを押すと色の設定とか戻っちゃうから最初に１回だけ！</p>
         <button id="composeButton">合成</button>
+        <div class="colorPicker">
+            <label for="textColor">文字色:</label>
+            <input type="color" id="textColor" value="#ffffff">
+            <label for="strokeColor">縁取り色:</label>
+            <input type="color" id="strokeColor" value="#000000">
+        </div>
         <div id="resizeControls" style="display: none;">
             <label for="resizeSlider">画像サイズ調整:</label>
             <input type="range" id="resizeSlider" min="10" max="200" value="100">
@@ -233,7 +242,7 @@
         const resizeValue = document.getElementById('resizeValue');
 
         let templateImage = new Image();
-        templateImage.src = 'template.png';
+        templateImage.src = 'template_aut.png';
         templateImage.onload = function () {
             compositionCanvas.width = templateImage.width;
             compositionCanvas.height = templateImage.height;
@@ -505,7 +514,7 @@
                         console.log('画像が保存されました');
 
                         // Twitterの共有URLを作成
-                        const tweetText = encodeURIComponent('ぶいちゃ夏の絵日記,VRchat');
+                        const tweetText = encodeURIComponent('ぶいちゃ夏の絵日記,VRChat');
                         // 共有したいURLを設定（あなたのアプリやサービスのURLに置き換えてください）
                         const shareUrl = encodeURIComponent('https://asa58n.github.io/gen_picture-diary/');
 
