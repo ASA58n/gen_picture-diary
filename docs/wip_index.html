@@ -553,15 +553,25 @@
         // downloadButtonのイベントリスナーを変更
         downloadButton.addEventListener('click', function (e) {
             e.preventDefault();  // デフォルトの挙動を防止
-
+        
+            // 現在の年を取得
+            const currentYear = new Date().getFullYear();
+        
+            // ユーザーが入力した月と日を取得
+            const month = textInput1.value.padStart(2, '0');  // 1桁の場合、先頭に0を付加
+            const day = textInput2.value.padStart(2, '0');  // 1桁の場合、先頭に0を付加
+        
+            // ファイル名を生成
+            const fileName = `VRC_pic_diary_${currentYear}${month}${day}.png`;
+        
             // 最新のcanvas内容を取得
             const imageData = compositionCanvas.toDataURL('image/png');
-
+        
             // ダウンロード用の一時的なリンクを作成
             const tempLink = document.createElement('a');
-            tempLink.download = 'composed_image.png';  // ダウンロードされるファイル名
+            tempLink.download = fileName;  // 生成したファイル名を使用
             tempLink.href = imageData;
-
+        
             // リンクをクリックしてダウンロードを開始
             document.body.appendChild(tempLink);
             tempLink.click();
