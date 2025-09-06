@@ -241,8 +241,19 @@
         const resizeSlider = document.getElementById('resizeSlider');
         const resizeValue = document.getElementById('resizeValue');
 
+        let date = new Date();
+        let month = date.getMonth();
+        
         let templateImage = new Image();
-        templateImage.src = 'template_spring.png';
+        if (month === 11 || month <= 1) {       // 12,1,2月
+            templateImage.src = 'template_winter.png';
+        } else if (month <= 4) {                // 3,4,5月
+            templateImage.src = 'template_spring.png';
+        } else if (month <= 7) {                // 6,7,8月
+            templateImage.src = 'template_summer.png';
+        } else {                                // 9,10,11月
+            templateImage.src = 'template_autumn.png';
+        }
         templateImage.onload = function () {
             compositionCanvas.width = templateImage.width;
             compositionCanvas.height = templateImage.height;
@@ -516,11 +527,11 @@
                         // Twitterの共有URLを作成
                         const tweetText = encodeURIComponent('ぶいちゃの絵日記,VRChat');
                         // 共有したいURLを設定（あなたのアプリやサービスのURLに置き換えてください）
-                        // const shareUrl = encodeURIComponent('https://asa58n.github.io/gen_picture-diary/');
+                        const shareUrl = encodeURIComponent('https://asa58n.github.io/gen_picture-diary/');
 
                         // Twitter Intent URLを作成
-                        // const twitterIntentUrl = `https://twitter.com/intent/tweet?hashtags=${tweetText}&url=${shareUrl}%0A`;
-                        const twitterIntentUrl = `https://twitter.com/intent/tweet?hashtags=${tweetText}%0A`;
+                        const twitterIntentUrl = `https://twitter.com/intent/tweet?hashtags=${tweetText}&url=${shareUrl}%0A`;
+
                         // 画像をBlobからFileに変換
                         const file = new File([blob], "image.png", { type: "image/png" });
 
